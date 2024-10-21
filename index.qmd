@@ -128,6 +128,25 @@ dados |>
 5. A função `labs()` é usada para adicionar rótulos aos eixos x e y.
 6. A função `theme_minimal()` é usada para aplicar um tema minimalista ao gráfico.
 
+### Como o volume de todos os sistemas variou ao longo do tempo?
+
+
+```{r}
+dados |> 
+  ggplot() + # <1>
+  aes(x = data, y = volume_porcentagem) + # <2>
+  geom_line() + # <3>
+  labs(x = "Ano", # <4>
+       y = "Volume (%)") + # <4>
+  theme_minimal() + # <5>
+  facet_wrap(~sistema) # <6>
+```
+1. A função `ggplot()` é usada para iniciar a criação de um gráfico.
+2. A função `aes()` é usada para mapear variáveis estéticas (como cor, forma e tamanho) aos dados. Nesse caso, estamos mapeando a variável `data` ao eixo x e a variável `volume_porcentagem` ao eixo y.
+3. A função `geom_line()` é usada para adicionar uma camada de linhas ao gráfico.
+4. A função `labs()` é usada para adicionar rótulos aos eixos x e y.
+5. A função `theme_minimal()` é usada para aplicar um tema minimalista ao gráfico.
+6. A função `facet_wrap()` é usada para criar um gráfico separado para cada categoria da variável `sistema`.
 
 ### Exercício 
 
