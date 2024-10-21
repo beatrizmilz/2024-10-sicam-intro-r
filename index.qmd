@@ -1,0 +1,266 @@
+---
+title: "Introdução ao R"
+author: "Beatriz Milz"
+date: "2024-10-22"
+lang: pt
+toc: true
+code-annotations: "hover"
+---
+
+
+## Objetivos
+
+-   Explorar os dados sobre os mananciais utilizados para abastecimento público na Região Metropolitana de São Paulo.
+
+Fonte dos dados:
+
+-   <https://beatrizmilz.github.io/mananciais/>
+-   <https://mananciais.sabesp.com.br/Situacao>
+
+
+## Carregando os pacotes necessários
+
+```{r}
+#| message: false
+library(tidyverse) # <1>
+library(knitr) # <2>
+library(DT) # <2>
+```
+1. Carregando o pacote tidyverse, uma coleção de pacotes que facilitam a manipulação e visualização de dados.
+2. Carregando os pacotes knitr e DT, para apresentar os resultados de forma mais amigável no arquivo final.
+
+
+## Carregando os dados
+
+```{r}
+dados_brutos <- read_csv2("https://github.com/beatrizmilz/mananciais/raw/master/inst/extdata/mananciais.csv") # <1>
+```
+1. Importando a tabela disponível neste link, usando a função `read_csv2()`. Essa função importa arquivos `.CSV` (*comma separated values*), utilizando o ponto e vírgula (`;`) como separador. O sinal `<-` se chama **atribuição**, e é usado para armazenar o resultado da função `read_csv2()` na variável `dados_brutos` 
+
+
+## Conhecendo a base de dados
+
+- O que cada linha significa?
+- Quais são as variáveis presentes na base de dados?
+- Qual é o tipo de cada variável? É o esperado?
+- Tem alguma variável que seria interessante gerar a partir das informações presentes na base de dados?
+
+```{r}
+glimpse(dados_brutos) # <1>
+```
+1. A função `glimpse()` é usada para visualizar um resumo da estrutura do conjunto de dados. Ela mostra o número de observações e variáveis, além de listar as variáveis presentes e seus tipos.
+
+## Criando uma nova coluna
+
+```{r}
+dados <- dados_brutos |>  # <1>
+  mutate(ano = year(data)) # <2>
+
+glimpse(dados)
+```
+1. O operador `|>` é usado para encadear funções, passando o resultado da função anterior como argumento para a próxima função.
+2. A função `mutate()` é usada para criar uma nova coluna chamada `ano`, que armazena o ano da variável `data`. A função `year()` é usada para extrair o ano da variável `data`.
+
+## Análise exploratória
+
+### Quais são os sistemas presentes na base Mananciais?
+
+```{r}
+dados |> 
+  distinct(sistema) # <1>
+```
+1. A função `distinct()` é usada para retornar apenas os valores únicos de uma variável (ou conjunto de variáveis).
+
+### Qual é o período disponível na base de dados?
+
+```{r}
+min(dados$data) # <1>
+max(dados$data) # <2>
+```
+1. A função `min()` é usada para retornar o valor mínimo de uma variável.
+2. A função `max()` é usada para retornar o valor máximo de uma variável.
+
+
+### Qual é o sistema com o menor volume armazenado atualmente?
+
+```{r}
+dados |> 
+  filter(data == max(data)) |> # <1>
+  arrange(volume_porcentagem) # <2>
+```
+1. A função `filter()` é usada para filtrar apenas as linhas que atendem a uma condição específica. Nesse caso, estamos filtrando apenas os dados da data mais recente.
+2. A função `arrange()` é usada para ordenar as linhas de acordo com uma variável específica. Nesse caso, estamos ordenando as linhas de acordo com o volume armazenado, de forma crescente.
+
+
+### Considerando a série histórica, qual é o volume operacional máximo para cada sistema?
+
+```{r}
+dados |> 
+  group_by(sistema) |>  # <1>
+  filter(volume_operacional == max(volume_operacional)) |> # <2>
+  ungroup() |> # <3>
+  arrange(desc(volume_operacional)) # <4>
+```
+1. A função `group_by()` é usada para agrupar os dados de acordo com uma variável específica. Estamos agrupando a base de dados por sistema, e as próximas funções serão aplicadas a cada grupo separadamente.
+2. A função `filter()` é usada para filtrar apenas as linhas que atendem a uma condição específica. Nesse caso, estamos filtrando apenas os dados com o volume operacional máximo, para cada sistema (pois a base de dados está agrupada).
+3. A função `ungroup()` é usada para remover a informação de agrupamento dos dados.
+4. A função `arrange()` é usada para ordenar as linhas de acordo com uma variável específica. Nesse caso, estamos ordenando as linhas de acordo com o volume operacional, de forma decrescente (devido à função `desc()`).
+
+
+
+
+###  Como o volume do sistema Cantareira variou ao longo do tempo?
+
+```{r}
+dados |> 
+  filter(sistema == "Cantareira") |>  # <1>
+  ggplot() + # <2>
+  aes(x = data, y = volume_porcentagem) + # <3>
+  geom_line() + # <4>
+  labs(x = "Ano", # <5>
+       y = "Volume (%)") + # <5>
+  theme_minimal() # <6>
+```
+1. A função `filter()` é usada para filtrar apenas as linhas que atendem a uma condição específica. Nesse caso, estamos filtrando apenas os dados do sistema Cantareira.
+2. A função `ggplot()` é usada para iniciar a criação de um gráfico.
+3. A função `aes()` é usada para mapear variáveis estéticas (como cor, forma e tamanho) aos dados. Nesse caso, estamos mapeando a variável `data` ao eixo x e a variável `volume_porcentagem` ao eixo y.
+4. A função `geom_line()` é usada para adicionar uma camada de linhas ao gráfico.
+5. A função `labs()` é usada para adicionar rótulos aos eixos x e y.
+6. A função `theme_minimal()` é usada para aplicar um tema minimalista ao gráfico.
+
+
+### Exercício 
+
+Adapte o código abaixo para criar um gráfico para o sistema Alto Tietê:
+
+```{r}
+dados |> 
+  filter(sistema == "Cantareira") |> 
+  ggplot() +
+  geom_line(aes(x = data, y = volume_porcentagem)) +
+  theme_minimal() +
+  labs(x = "Ano", y = "Volume (%)")
+```
+
+
+### Cantareira segundo as faixas de operação
+
+- Referência: <https://www.gov.br/ana/pt-br/assuntos/noticias-e-eventos/noticias/sistema-cantareira-sp-volta-a-operar-na-faixa-de-alerta-em-julho>
+
+
+> - Faixa 1 – Normal: volume útil acumulado igual ou maior que 60% e limite de retirada de 33,0 m³/s;
+> - Faixa 2 – Atenção: volume útil acumulado igual ou maior que 40% e menor que 60% e limite de retirada de 31,0 m³/s;
+> - Faixa 3 – Alerta: volume útil acumulado igual ou maior que 30% e menor que 40% e limite de retirada de 27,0 m³/s;
+> - Faixa 4 – Restrição: volume útil acumulado igual ou maior que 20% e menor que 30% e limite de retirada de 23,0 m³/s;
+> - Faixa 5 – Especial: volume acumulado inferior a 20% do volume útil e limite de retirada de 15,5 m³/s.
+
+
+```{r}
+dados_cantareira <- dados |> # <1>
+  filter(sistema == "Cantareira") |>  # <2> 
+  mutate(faixa_operacao = case_when( # <3>
+    volume_porcentagem >= 60 ~ "Faixa 1 - Normal",
+    volume_porcentagem >= 40 & volume_porcentagem < 60 ~ "Faixa 2 - Atenção",
+    volume_porcentagem >= 30 & volume_porcentagem < 40 ~ "Faixa 3 - Alerta",
+    volume_porcentagem >= 20 & volume_porcentagem < 30 ~ "Faixa 4 - Restrição",
+    volume_porcentagem < 20 ~ "Faixa 5 - Especial"
+  )) # <3>
+```
+1. Vamos salvar o resultado deste bloco de código na variável `dados_cantareira`.
+2. A função `filter()` é usada para filtrar apenas as linhas que atendem a uma condição específica. Nesse caso, estamos filtrando apenas os dados do sistema Cantareira.
+3. A função `mutate()` é usada para criar uma nova coluna. Estamos criando uma coluna chamada `faixa_operacao`, que classifica o volume do reservatório de acordo com as faixas de operação definidas. A função `case_when()` é usada para definir as condições para cada categoria.
+
+```{r}
+dados_cantareira |> 
+  ggplot() + # <1>
+  aes(x = data, y = volume_porcentagem, color = faixa_operacao) + # <2>
+  geom_line(aes(group = "none"), linewidth = 1) + # <3>
+  labs(x = "Ano", # <4>
+       y = "Volume (%)",
+       color = "Faixa de operação") + # <4>
+  theme_minimal() + # <5>
+  scale_color_manual(values = c("#7BFF00","#B9BC3D","#D89B5B","#F77979", "red")) # <6>
+```
+1. A função `ggplot()` é usada para iniciar a criação de um gráfico.
+2. A função `aes()` é usada para mapear variáveis estéticas (como cor, forma e tamanho) aos dados. Nesse caso, estamos mapeando a variável `data` ao eixo x, a variável `volume_porcentagem` ao eixo y e a variável `faixa_operacao` à cor.
+3. A função `geom_line()` é usada para adicionar uma camada de linhas ao gráfico. A estética `group = "none"` é usada para garantir que cada linha seja desenhada separadamente. O argumento `linewidth = 1` é usado para definir a largura da linha.
+4. A função `labs()` é usada para adicionar rótulos aos eixos x e y, e à legenda de cores.
+5. A função `theme_minimal()` é usada para aplicar um tema minimalista ao gráfico.
+6. A função `scale_color_manual()` é usada para definir as cores usadas na legenda. Estamos definindo manualmente as cores para cada faixa de operação.
+
+
+### Exercício
+
+O que o resultado a seguir significa?
+
+```{r}
+dados_cantareira |> 
+  count(faixa_operacao)
+```
+
+### Criando uma tabela de resumo
+
+-   Porcentagem do volume do reservatório: calculando os valores mínimo, máximo, média, variância, desvio padrão.
+
+```{r}
+dados |> 
+  summarise( #<1>
+    min = min(volume_porcentagem), # <2>
+    max = max(volume_porcentagem), # <3> 
+    media = mean(volume_porcentagem), # <4>
+    variancia = var(volume_porcentagem), # <5>
+    desvio_padrao = sd(volume_porcentagem) # <6>
+            ) |> # <1>
+  kable()
+```
+1. A função `summarise()` é usada para resumir os dados de acordo com uma ou mais funções.
+2. A função `min()` é usada para calcular o valor mínimo da variável `volume_porcentagem`.
+3. A função `max()` é usada para calcular o valor máximo da variável `volume_porcentagem`.
+4. A função `mean()` é usada para calcular a média da variável `volume_porcentagem`.
+5. A função `var()` é usada para calcular a variância da variável `volume_porcentagem`.
+6. A função `sd()` é usada para calcular o desvio padrão da variável `volume_porcentagem`.
+
+-   E para todas as combinações de Sistema e Ano?
+
+```{r}
+dados |>
+  group_by(sistema, ano) |> # <1>
+  summarise(  # <2>
+    min = min(volume_porcentagem), 
+    max = max(volume_porcentagem), 
+    media = mean(volume_porcentagem), 
+    variancia = var(volume_porcentagem), 
+    desvio_padrao = sd(volume_porcentagem) 
+            ) |> # <2>
+  DT::datatable()
+```
+1. A função `group_by()` é usada para agrupar os dados de acordo com uma ou mais variáveis. Nesse caso, estamos agrupando os dados por sistema e ano.
+2. A função `summarise()` é usada para resumir os dados de acordo com uma ou mais funções. Estamos fazendo as mesmas sumarizações que no exemplo anterior, mas agora para cada combinação de sistema e ano.
+
+### Exercício
+
+Adapte o código a seguir para criar uma tabela de resumo para a variável de Volume Operacional:
+
+```{r message = FALSE}
+dados |> 
+  group_by(ano, sistema) |> 
+  summarise(min = min(volume_porcentagem),
+            max = max(volume_porcentagem),
+            media = round(mean(volume_porcentagem), 1),
+            variancia = round(var(volume_porcentagem), 1), 
+            desvio_padrao = round(sd(volume_porcentagem), 1)) |> 
+  DT::datatable()
+```
+
+
+
+# Materiais para estudo
+
+- [Livro R para Ciência de Dados (2a Edição)](https://cienciadedatos.github.io/pt-r4ds/)
+
+- [Material do curso: Introdução à análise de dados no R - Utilizando dados públicos e registros administrativos brasileiros](https://ipeadata-lab.github.io/curso_r_intro_202409/)
+
+- [Livro Ciência de Dados em R](https://livro.curso-r.com/)
+
+- [Livro Análises Ecológicas em R](https://analises-ecologicas.netlify.app/)
+
