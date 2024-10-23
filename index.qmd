@@ -242,7 +242,7 @@ dados |>
 -   E para todas as combinações de Sistema e Ano?
 
 ```{r}
-dados |>
+tabela_resumo <- dados |>
   group_by(sistema, ano) |> # <1>
   summarise(  # <2>
     min = min(volume_porcentagem), 
@@ -250,11 +250,33 @@ dados |>
     media = mean(volume_porcentagem), 
     variancia = var(volume_porcentagem), 
     desvio_padrao = sd(volume_porcentagem) 
-            ) |> # <2>
+            ) 
+
+tabela_resumo |> # <2>
   DT::datatable()
 ```
 1. A função `group_by()` é usada para agrupar os dados de acordo com uma ou mais variáveis. Nesse caso, estamos agrupando os dados por sistema e ano.
 2. A função `summarise()` é usada para resumir os dados de acordo com uma ou mais funções. Estamos fazendo as mesmas sumarizações que no exemplo anterior, mas agora para cada combinação de sistema e ano.
+
+### Exportando o arquivo final
+
+Podemos exportar a tabela de resumo para um arquivo `.csv` ou `.xlsx`:
+
+```{r}
+write_csv2(  # <1>
+  tabela_resumo,
+  "tabela_resumo_mananciais.csv"
+  ) # <1>
+
+writexl::write_xlsx(# <2>
+  tabela_resumo, 
+  "tabela_resumo_mananciais.xlsx"
+  ) # <2>
+```
+1. A função `write_csv2()` é usada para exportar a tabela de resumo para um arquivo `.csv`, utilizando o ponto e vírgula (`;`) como separador. O arquivo será salvo com o nome `tabela_resumo_mananciais.csv`.
+2. A função `write_xlsx()` é usada para exportar a tabela de resumo para um arquivo `.xlsx`, que pode ser aberto no Excel.
+
+
 
 ### Exercício
 
