@@ -1,6 +1,6 @@
 ---
 title: "Introdução ao R"
-subtitle: "SICAM 2024 - IEE/USP"
+subtitle: "V Simpósio Interdisciplinar de Ciência Ambiental <br> V SICAM 2024 - IEE/USP"
 author: "[Beatriz Milz](https://beamilz.com)"
 date: "2024-10-22"
 date-format: "DD/MM/YYYY"
